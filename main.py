@@ -7,11 +7,10 @@ BASE_DIR = os.getcwd()
 CONTENT_DIR = os.path.join(BASE_DIR, 'posts')
 TEMPLATE_DIR = os.path.join(BASE_DIR, 'templates')
 GENERATED_POSTS_DIR = os.path.join(BASE_DIR, 'generated_posts')
+ENV = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 
 def generate_html_for_post(filename, heading, date, content):
-    env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
-    print(env)
-    template = env.get_template("blog_post.html")
+    template = ENV.get_template("blog_post_template.html")
     html_content = template.render(
         heading = heading,
         date = date,
@@ -22,10 +21,16 @@ def generate_html_for_post(filename, heading, date, content):
         message.write(html_content)
         print(f"... wrote {filename}")
 
+def generate_html_index(posts):
+    template = ENV.get_template("index_template.html")
+    index_content = template.render(posts = posts)
+
+    with open("index.html", mode="w", encoding="utf-8") as f:
+        f.write(index_content)
 
 def convert_from_yaml(data):
     yaml_dict = yaml.safe_load(data)
-    return yaml_dict["heading"], yaml_dict["date"]
+    return yaml_dict["heading"], yaml_dict["date"], yaml_dict["description"]
 
 def convert_from_md(data):
     return markdown.markdown(data)
@@ -37,18 +42,22 @@ def get_all_posts():
 
 def get_description_and_content(filename):
     with open(os.path.join(CONTENT_DIR, filename)) as f:
-        description, content = f.read().split("-----", 1)
+        meta_data, content = f.read().split("-----", 1)
 
-    heading, date = convert_from_yaml(description)
+    heading, date, description = convert_from_yaml(meta_data)
     html_content = convert_from_md(content)
-    
-    generate_html_for_post(filename[:-5], heading, date, html_content)
+    filename, ext = os.path.splitext(filename)
+    return filename, heading, date, html_content, description
      
-
 def main():
     posts = get_all_posts()
+    index_list = []
     for post in posts:
-        get_description_and_content(post.name)
+        filename, heading, date, html_content, description = get_description_and_content(post.name)
+        generate_html_for_post(filename, heading, date, html_content)
+        index_list.append([filename+".html", heading, date, description])
+
+    generate_html_index(index_list[::-1])
 
 if __name__ == '__main__':
     main()
