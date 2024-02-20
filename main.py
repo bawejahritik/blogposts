@@ -17,7 +17,7 @@ def generate_html_for_post(filename, heading, date, content):
         content = content
     )
 
-    with open(f"{GENERATED_POSTS_DIR}/{filename}.html", mode="w", encoding="utf-8") as message:
+    with open(f"{filename}.html", mode="w", encoding="utf-8") as message:
         message.write(html_content)
         print(f"... wrote {filename}")
 
