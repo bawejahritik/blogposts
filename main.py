@@ -1,6 +1,9 @@
 import os
 import yaml
 import markdown
+import click
+import datetime
+
 from jinja2 import Environment, FileSystemLoader
 
 BASE_DIR = os.getcwd()
@@ -48,8 +51,21 @@ def get_description_and_content(filename):
     html_content = convert_from_md(content)
     filename, ext = os.path.splitext(filename)
     return filename, heading, date, html_content, description
-     
-def main():
+
+def handle_init():
+    heading = input("Enter the heading of the post: ")
+    description = input("Enter the description for the post: ")
+    date = datetime.datetime.now()
+    date = date.strftime("%B %d, %Y")
+    
+    idx = len(os.listdir(CONTENT_DIR))+1
+
+    with open(f"{CONTENT_DIR}/post{idx}.yaml", "w") as f:
+        data_to_write = f"heading: {heading}\ndate: {date}\ndescription: {description}\n-----\n" 
+        f.write(data_to_write)
+    print(f"Post file created at {CONTENT_DIR}/post{idx}.yaml. Open your favorite text editor and start writing.")
+
+def handle_html():
     posts = get_all_posts()
     index_list = []
     for post in posts:
@@ -58,6 +74,16 @@ def main():
         index_list.append([filename+".html", heading, date, description])
 
     generate_html_index(index_list[::-1])
+
+@click.command()
+@click.option('-i','--init', help='Initialize a new post', is_flag=True)
+@click.option('-h', '--html', help='Generate html for new post', is_flag=True)
+def main(init):
+    if init:
+        handle_init()
+
+    if html:
+        handle_html()
 
 if __name__ == '__main__':
     main()
