@@ -78,7 +78,7 @@ def handle_html():
 @click.command()
 @click.option('-i','--init', help='Initialize a new post', is_flag=True)
 @click.option('-h', '--html', help='Generate html for new post', is_flag=True)
-def main(init):
+def main(init, html):
     if init:
         handle_init()
 
